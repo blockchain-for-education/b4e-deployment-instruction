@@ -1,0 +1,93 @@
+version: "3.6"
+
+services:
+  # ============================= student-web-frontend =============================
+  student-web-frontend:
+    restart: unless-stopped
+    image: blockchain4education/student-web-frontend:${B4E_VERSION}
+    expose:
+      # - 80
+      - 443
+    ports:
+      # - "3002:80"
+      - "3002:443"
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - student-web-backend
+
+  # ============================= student-web-backend =============================
+  student-web-backend:
+    restart: unless-stopped
+    image: blockchain4education/student-web-backend:${B4E_VERSION}
+    expose:
+      - 8000
+    ports:
+      - "8002:8000"
+    environment:
+      - MONGODB_CONNECT_STRING=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@student-web-db:27017/B4E_Student_Backend?authSource=admin&readPreference=primary&ssl=false
+      - STUDENT_API_PROVIDER=http://b4e-student-data-api:8000
+      - TOKEN_SECRET
+    volumes:
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - student-web-db
+    command: ["run", "start-https"]
+
+  # ============================= student-web-database =============================
+  student-web-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - student_web-db:/data/db
+
+  # ============================= b4e-student-data-api =============================
+  b4e-student-data-api:
+    restart: unless-stopped
+    image: blockchain4education/b4e-student-data-api:${B4E_VERSION}
+    depends_on:
+      - b4e-student-data-api-db
+    # ports:
+    #   - ":8000"
+    command: |
+      bash -c "
+        b4e-student-api.py subscribe \
+        -B b4e-student-data-api:8000 \
+        --db-host b4e-student-data-api-db \
+        --db-user ${MONGO_USERNAME} \
+        --db-password ${MONGO_PASSWORD} \
+        -C tcp://${VALIDATOR_ENDPOINT} \
+        -vv
+      "
+
+  # ============================= b4e-student-data-api-db =============================
+  b4e-student-data-api-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27021:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - student_b4e-student-data-api-db:/data/db
+
+volumes:
+  student_web-db:
+  student_b4e-student-data-api-db:

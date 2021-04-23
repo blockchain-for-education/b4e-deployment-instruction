@@ -1,0 +1,192 @@
+version: "3.6"
+
+services:
+  # ============================= validator =============================
+  validator-5:
+    restart: unless-stopped
+    image: hyperledger/sawtooth-validator:chime
+    expose:
+      - 4004
+      - 5050
+      - 8800
+    ports:
+      - "4554:4004"
+      - "8805:8800"
+    volumes:
+      - school_pbft-shared:/school_pbft-shared
+    command: |
+      bash -c "
+        if [ -e /school_pbft-shared/validators/validator-5.priv ]; then
+          echo wait a moment
+          cp /school_pbft-shared/validators/validator-5.pub   /etc/sawtooth/keys/validator.pub
+          cp /school_pbft-shared/validators/validator-5.priv   /etc/sawtooth/keys/validator.priv
+        fi &&
+        if [ ! -e /etc/sawtooth/keys/validator.priv ]; then
+          sawadm keygen
+          mkdir -p /school_pbft-shared/validators || true
+          echo wait a moment
+          cp /etc/sawtooth/keys/validator.pub   /school_pbft-shared/validators/validator-5.pub
+          cp /etc/sawtooth/keys/validator.priv   /school_pbft-shared/validators/validator-5.priv
+        fi &&
+        sawtooth keygen my_key &&
+        sawtooth-validator -vv \
+          --endpoint tcp://${MY_SCHOOL_PEER_IP}:8805 \
+          --bind component:tcp://eth0:4004 \
+          --bind consensus:tcp://eth0:5050 \
+          --bind network:tcp://eth0:8800 \
+          --scheduler parallel \
+          --peering static \
+          --maximum-peer-connectivity 10000 \
+          --peers tcp://${MINISTRY_PEERS_IP}:8800 \
+          --peers tcp://${MINISTRY_PEERS_IP}:8801 \
+          --peers tcp://${MINISTRY_PEERS_IP}:8802 \
+          --peers tcp://${MINISTRY_PEERS_IP}:8803 \
+          --peers tcp://${MINISTRY_PEERS_IP}:8804 \
+      "
+
+  # ============================= pbft engine =============================
+  pbft-5:
+    restart: unless-stopped
+    image: hyperledger/sawtooth-pbft-engine:chime
+    command: pbft-engine -vv --connect tcp://validator-5:5050
+    stop_signal: SIGKILL
+
+  # ============================= rest api =============================
+  rest-api-5:
+    restart: unless-stopped
+    image: hyperledger/sawtooth-rest-api:chime
+    expose:
+      - 8008
+    ports:
+      - "8013:8008"
+    command: |
+      bash -c "
+        sawtooth-rest-api \
+          --connect tcp://validator-5:4004 \
+          --bind rest-api-5:8008
+      "
+    stop_signal: SIGKILL
+
+  # ============================= setting =============================
+  settings-tp-5:
+    restart: unless-stopped
+    image: hyperledger/sawtooth-settings-tp:chime
+    expose:
+      - 4004
+    command: settings-tp -C tcp://validator-5:4004
+    stop_signal: SIGKILL
+
+  # ============================= b4e tp =============================
+  b4e-tp-5:
+    restart: unless-stopped
+    image: blockchain4education/b4e-transaction-processor:${B4E_VERSION}
+    command: |
+      bash -c "
+        sleep 1
+        b4e-tp -v -C tcp://validator-5:4004
+        echo b4e-tp-5 connect
+      "
+
+  # ============================= b4e-rest-api =============================
+  b4e-rest-api:
+    restart: unless-stopped
+    image: blockchain4education/b4e-rest-api:${B4E_VERSION}
+    expose:
+      - 8000
+    # ports:
+    #   - "8006:8000"
+    command: |
+      bash -c "
+        b4e-rest-api \
+          -B b4e-rest-api:8000 \
+          -C validator-5:4004 \
+          -R rest-api-5:8008 \
+          --db-host school_mongo-db \
+          --db-user ${SCHOOL_MONGO_USERNAME} \
+          --db-password ${SCHOOL_MONGO_PASSWORD} \
+          -vv
+      "
+    depends_on:
+      - rest-api-5
+      - validator-5
+      - school_mongo-db
+
+  # ============================= b4e-subscriber =============================
+
+  b4e-subscriber:
+    restart: unless-stopped
+    image: blockchain4education/b4e-subscriber:${B4E_VERSION}
+    command: |
+      bash -c "
+        b4e-subscriber subscribe \
+        --db-host school_mongo-db \
+        --db-user ${SCHOOL_MONGO_USERNAME} \
+        --db-password ${SCHOOL_MONGO_PASSWORD} \
+        --rest-api-default rest-api-5:8008  \
+        --subscriber-host-url https://school-backend.b4e.vn:8001 \
+        -C tcp://validator-5:4004 \
+        -vv
+      "
+    depends_on:
+      - school_mongo-db
+      - validator-5
+
+  # ============================= school-database =============================
+  school_mongo-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${SCHOOL_MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${SCHOOL_MONGO_PASSWORD}
+    volumes:
+      - school_mongodb:/data/db
+
+  # ============================= school-web-backend =============================
+  school-web-backend:
+    restart: unless-stopped
+    image: blockchain4education/school-web-backend:${B4E_VERSION}
+    expose:
+      - 8000
+    ports:
+      - "8001:8000"
+    environment:
+      - MONGODB_CONNECT_STRING=mongodb://${SCHOOL_MONGO_USERNAME}:${SCHOOL_MONGO_PASSWORD}@school_mongo-db:27017/B4E_School_Backend?authSource=admin&readPreference=primary&ssl=false
+      - REST_API_URL=http://b4e-rest-api:8000
+      - STAFF_ACCOUNT_EMAIL
+      - STAFF_ACCOUNT_PASSWORD
+      - TOKEN_SECRET
+    volumes:
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - school_mongo-db
+    command: ["run", "start-https"]
+
+  # ============================= school-web-frontend =============================
+  school-web-frontend:
+    restart: unless-stopped
+    image: blockchain4education/school-web-frontend:${B4E_VERSION}
+    expose:
+      # - 80
+      - 443
+    ports:
+      # - "3001:80"
+      - "3001:443"
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - school-web-backend
+
+volumes:
+  school_pbft-shared:
+  school_mongodb:

@@ -1,0 +1,125 @@
+server {
+    server_name ministry.b4e.vn www.ministry.b4e.vn;
+    listen 443 ssl; 
+
+    location / {
+      proxy_pass  https://localhost:3000;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/ministry.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/ministry.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+}
+
+
+server {
+    listen 443 ssl; 
+    server_name school.b4e.vn www.school.b4e.vn;
+
+    location / {
+      proxy_pass  https://localhost:3001;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/school.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/school.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;     
+}
+
+
+
+server {
+    listen 443 ssl; 
+    server_name student.b4e.vn www.student.b4e.vn;
+
+    location / {
+      proxy_pass  https://localhost:3002;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/student.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/student.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+}
+
+
+server {
+    listen 443 ssl; 
+    server_name verifier.b4e.vn www.verifier.b4e.vn;
+
+    location / {
+      proxy_pass  https://localhost:3003;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/verifier.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/verifier.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+}
+
+
+
+server {
+    listen 443; 
+    server_name explorer.b4e.vn www.explorer.b4e.vn;
+
+    location / {
+      try_files $uri $uri/ index.html =404;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/explorer.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/explorer.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+}
+
+
+server {
+  if ($host = www.ministry.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  if ($host = ministry.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  listen 80;
+  server_name ministry.b4e.vn www.ministry.b4e.vn;
+    return 404; 
+}
+
+server {
+  if ($host = www.school.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  if ($host = school.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  listen 80;
+  server_name school.b4e.vn www.school.b4e.vn;
+    return 404; 
+}
+
+server {
+  if ($host = www.student.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  if ($host = student.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  listen 80;
+  server_name student.b4e.vn www.student.b4e.vn;
+    return 404; 
+}
+
+
+server {
+  if ($host = www.verifier.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  if ($host = verifier.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  listen 80;
+  server_name verifier.b4e.vn www.verifier.b4e.vn;
+    return 404; 
+}

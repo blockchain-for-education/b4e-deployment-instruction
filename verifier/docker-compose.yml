@@ -1,0 +1,75 @@
+version: "3.6"
+
+services:
+  # ============================= verifier-web-frontend =============================
+  verifier-web-frontend:
+    restart: unless-stopped
+    image: blockchain4education/verifier-web-frontend:${B4E_VERSION}
+    expose:
+      # - 80
+      - 443
+    ports:
+      # - "3003:80"
+      - "3003:443"
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - verifier-web-backend
+
+  # ============================= verifier-web-backend =============================
+  verifier-web-backend:
+    restart: unless-stopped
+    image: blockchain4education/verifier-web-backend:${B4E_VERSION}
+    expose:
+      - 8000
+    ports:
+      - "8003:8000"
+    environment:
+      - STUDENT_API_PROVIDER=http://b4e-student-data-api:8000
+      - TOKEN_SECRET
+    volumes:
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    command: ["run", "start-https"]
+
+  # ============================= b4e-student-data-api =============================
+  b4e-student-data-api:
+    restart: unless-stopped
+    image: blockchain4education/b4e-student-data-api:${B4E_VERSION}
+    depends_on:
+      - b4e-student-data-api-db
+    # ports:
+    #   - ":8000"
+    command: |
+      bash -c "
+        b4e-student-api.py subscribe \
+        -B b4e-student-data-api:8000 \
+        --db-host b4e-student-data-api-db \
+        --db-user ${MONGO_USERNAME} \
+        --db-password ${MONGO_PASSWORD} \
+        -C tcp://${VALIDATOR_ENDPOINT} \
+        -vv
+      "
+
+  # ============================= b4e-student-data-api-db =============================
+  b4e-student-data-api-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27023:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - verifier_student-api-provider-db:/data/db
+
+volumes:
+  verifier_student-api-provider-db:
