@@ -1,0 +1,99 @@
+version: "3.6"
+
+services:
+  # ============================= company-web-frontend =============================
+  company-web-frontend:
+    restart: unless-stopped
+    image: blockchain4education/company-web-frontend:${B4E_VERSION}-minor
+    ports:
+      - "3004:443"
+    depends_on:
+      - company-web-backend
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - company-web-backend
+
+  # ============================= company-web-backend =============================
+  company-web-backend:
+    restart: unless-stopped
+    image: blockchain4education/company-web-backend:${B4E_VERSION}-minor
+    expose:
+      - 8000
+    ports:
+      - "8004:8000"
+    environment:
+      - MONGODB_CONNECT_STRING=mongodb://${COMPANY_MONGO_USERNAME}:${COMPANY_MONGO_PASSWORD}@company_mongo-db:27017/B4E_Company_Backend?authSource=admin&readPreference=primary&ssl=false
+      - TOKEN_SECRET
+      - COMPANY_ACCOUNT_EMAIL
+      - COMPANY_ACCOUNT_PASSWORD
+      - REST_API_URL=http://${MINISTRY_PEERS_IP}:8000
+      - STUDENT_API_PROVIDER=http://b4e-student-data-api:8000
+      # FIXME: remove this mockup api
+      - STUDENT_BACKEND_ENDPOINT=http://${MINISTRY_PEERS_IP}:8002/student
+    volumes:
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - company-web-db
+    command: ["run", "start-https"]
+
+  # ============================= company-database =============================
+  company_mongo-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27024:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${COMPANY_MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${COMPANY_MONGO_PASSWORD}
+    volumes:
+      - company_mongodb:/data/db
+
+  # ============================= b4e-student-data-api =============================
+  b4e-student-data-api:
+    restart: unless-stopped
+    build:
+      context: ../../blockchain/ministry2/
+      dockerfile: ./student_endpoint/Dockerfile
+    image: blockchain4education/b4e-student-data-api:${B4E_VERSION}
+    depends_on:
+      - b4e-student-data-api-db
+    # ports:
+    #   - ":8000"
+    command: |
+      bash -c "
+        b4e-student-api.py subscribe \
+        -B b4e-student-data-api:8000 \
+        --db-host b4e-student-data-api-db \
+        --db-user ${MONGO_USERNAME} \
+        --db-password ${MONGO_PASSWORD} \
+        -C tcp://${VALIDATOR_ENDPOINT} \
+        -vv
+      "
+
+  # ============================= b4e-student-data-api-db =============================
+  b4e-student-data-api-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27125:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - company_student-api-provider-db:/data/db
+
+volumes:
+  company_student-api-provider-db:
+  company_mongodb:

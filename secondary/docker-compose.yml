@@ -1,0 +1,58 @@
+version: "3.6"
+
+services:
+  # ============================= secondary-web-frontend =============================
+  secondary-web-frontend:
+    restart: unless-stopped
+    image: blockchain4education/secondary-web-frontend:${B4E_VERSION}-minor
+    ports:
+      - "3006:443"
+    depends_on:
+      - secondary-web-backend
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - secondary-web-backend
+
+  # ============================= secondary-web-backend =============================
+  secondary-web-backend:
+    restart: unless-stopped
+    image: blockchain4education/secondary-web-backend:${B4E_VERSION}-minor
+    ports:
+      - "8006:8000"
+    environment:
+      - MONGODB_CONNECT_STRING=mongodb://${SECONDARY_MONGO_USERNAME}:${SECONDARY_MONGO_PASSWORD}@secondary_mongo-db:27017/B4E_Secondary_Backend?authSource=admin&readPreference=primary&ssl=false
+      - TOKEN_SECRET
+      - SECONDARY_ACCOUNT_EMAIL
+      - SECONDARY_ACCOUNT_PASSWORD
+      - REST_API_URL=http://${MINISTRY_PEERS_IP}:8000
+      - STUDENT_API_PROVIDER=http://b4e-student-data-api:8000
+    volumes:
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - secondary-web-db
+    command: ["run", "start-https"]
+
+  # ============================= secondary-database =============================
+  secondary_mongo-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27026:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${SECONDARY_MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${SECONDARY_MONGO_PASSWORD}
+    volumes:
+      - secondary_mongodb:/data/db
+
+volumes:
+  secondary_mongodb:

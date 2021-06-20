@@ -1,0 +1,62 @@
+version: "3.6"
+
+services:
+  # ============================= primary-web-frontend =============================
+  primary-web-frontend:
+    restart: unless-stopped
+    image: blockchain4education/primary-web-frontend:${B4E_VERSION}-minor
+    expose:
+      - 3000
+    ports:
+      - "3005:443"
+    depends_on:
+      - primary-web-backend
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - primary-web-backend
+
+  # ============================= primary-web-backend =============================
+  primary-web-backend:
+    restart: unless-stopped
+    image: blockchain4education/primary-web-backend:${B4E_VERSION}-minor
+    expose:
+      - 8000
+    ports:
+      - "8005:8000"
+    environment:
+      - MONGODB_CONNECT_STRING=mongodb://${PRIMARY_MONGO_USERNAME}:${PRIMARY_MONGO_PASSWORD}@primary_mongo-db:27017/B4E_Primary_Backend?authSource=admin&readPreference=primary&ssl=false
+      - TOKEN_SECRET
+      - PRIMARY_ACCOUNT_EMAIL
+      - PRIMARY_ACCOUNT_PASSWORD
+      - REST_API_URL=http://${MINISTRY_PEERS_IP}:8000
+      - STUDENT_API_PROVIDER=http://b4e-student-data-api:8000
+    volumes:
+      - type: bind
+        source: /etc/letsencrypt/
+        target: /etc/letsencrypt/
+    depends_on:
+      - primary-web-db
+    command: ["run", "start-https"]
+
+  # ============================= primary-database =============================
+  primary_mongo-db:
+    restart: unless-stopped
+    image: mongo
+    expose:
+      - 27017
+    ports:
+      - "27025:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${PRIMARY_MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${PRIMARY_MONGO_PASSWORD}
+    volumes:
+      - primary_mongodb:/data/db
+
+volumes:
+  primary_mongodb:
