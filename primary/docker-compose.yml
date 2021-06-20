@@ -30,7 +30,7 @@ services:
     ports:
       - "8005:8000"
     environment:
-      - MONGODB_CONNECT_STRING=mongodb://${PRIMARY_MONGO_USERNAME}:${PRIMARY_MONGO_PASSWORD}@primary_mongo-db:27017/B4E_Primary_Backend?authSource=admin&readPreference=primary&ssl=false
+      - MONGODB_CONNECT_STRING=mongodb://${PRIMARY_MONGO_USERNAME}:${PRIMARY_MONGO_PASSWORD}@primary-web-db:27017/B4E_Primary_Backend?authSource=admin&readPreference=primary&ssl=false
       - TOKEN_SECRET
       - PRIMARY_ACCOUNT_EMAIL
       - PRIMARY_ACCOUNT_PASSWORD
@@ -45,7 +45,7 @@ services:
     command: ["run", "start-https"]
 
   # ============================= primary-database =============================
-  primary_mongo-db:
+  primary-web-db:
     restart: unless-stopped
     image: mongo
     expose:

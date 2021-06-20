@@ -80,7 +80,7 @@ server {
     server_name company.b4e.vn www.company.b4e.vn;
 
     location / {
-      try_files $uri $uri/ index.html =404;
+      proxy_pass  https://localhost:3004;
     }
 
     ssl_certificate /etc/letsencrypt/live/company.b4e.vn/fullchain.pem; 
@@ -95,7 +95,7 @@ server {
     server_name primary.b4e.vn www.primary.b4e.vn;
 
     location / {
-      try_files $uri $uri/ index.html =404;
+      proxy_pass  https://localhost:3005;
     }
 
     ssl_certificate /etc/letsencrypt/live/primary.b4e.vn/fullchain.pem; 
@@ -110,7 +110,7 @@ server {
     server_name secondary.b4e.vn www.secondary.b4e.vn;
 
     location / {
-      try_files $uri $uri/ index.html =404;
+      proxy_pass  https://localhost:3006;
     }
 
     ssl_certificate /etc/letsencrypt/live/secondary.b4e.vn/fullchain.pem; 

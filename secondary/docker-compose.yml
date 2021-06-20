@@ -26,7 +26,7 @@ services:
     ports:
       - "8006:8000"
     environment:
-      - MONGODB_CONNECT_STRING=mongodb://${SECONDARY_MONGO_USERNAME}:${SECONDARY_MONGO_PASSWORD}@secondary_mongo-db:27017/B4E_Secondary_Backend?authSource=admin&readPreference=primary&ssl=false
+      - MONGODB_CONNECT_STRING=mongodb://${SECONDARY_MONGO_USERNAME}:${SECONDARY_MONGO_PASSWORD}@secondary-web-db:27017/B4E_Secondary_Backend?authSource=admin&readPreference=primary&ssl=false
       - TOKEN_SECRET
       - SECONDARY_ACCOUNT_EMAIL
       - SECONDARY_ACCOUNT_PASSWORD
@@ -41,7 +41,7 @@ services:
     command: ["run", "start-https"]
 
   # ============================= secondary-database =============================
-  secondary_mongo-db:
+  secondary-web-db:
     restart: unless-stopped
     image: mongo
     expose:

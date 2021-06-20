@@ -28,7 +28,7 @@ services:
     ports:
       - "8004:8000"
     environment:
-      - MONGODB_CONNECT_STRING=mongodb://${COMPANY_MONGO_USERNAME}:${COMPANY_MONGO_PASSWORD}@company_mongo-db:27017/B4E_Company_Backend?authSource=admin&readPreference=primary&ssl=false
+      - MONGODB_CONNECT_STRING=mongodb://${COMPANY_MONGO_USERNAME}:${COMPANY_MONGO_PASSWORD}@company-web-db:27017/B4E_Company_Backend?authSource=admin&readPreference=primary&ssl=false
       - TOKEN_SECRET
       - COMPANY_ACCOUNT_EMAIL
       - COMPANY_ACCOUNT_PASSWORD
@@ -41,11 +41,11 @@ services:
         source: /etc/letsencrypt/
         target: /etc/letsencrypt/
     depends_on:
-      - company_mongo-db
+      - company-web-db
     command: ["run", "start-https"]
 
   # ============================= company-database =============================
-  company_mongo-db:
+  company-web-db:
     restart: unless-stopped
     image: mongo
     expose:
@@ -61,9 +61,6 @@ services:
   # ============================= b4e-student-data-api =============================
   b4e-student-data-api:
     restart: unless-stopped
-    build:
-      context: ../../blockchain/ministry2/
-      dockerfile: ./student_endpoint/Dockerfile
     image: blockchain4education/b4e-student-data-api:${B4E_VERSION}
     depends_on:
       - b4e-student-data-api-db
