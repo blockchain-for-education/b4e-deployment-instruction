@@ -60,10 +60,6 @@ services:
 
   # ============================= b4e-student-data-api =============================
   b4e-student-data-api:
-    restart: unless-stopped
-    build:
-      context: ../../blockchain/ministry2/
-      dockerfile: ./student_endpoint/Dockerfile
     image: blockchain4education/b4e-student-data-api:${B4E_VERSION}
     depends_on:
       - b4e-student-data-api-db
