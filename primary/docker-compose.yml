@@ -28,7 +28,7 @@ services:
     expose:
       - 8000
     ports:
-      - "8005:8000"
+      - "8007:8000"
     environment:
       - MONGODB_CONNECT_STRING=mongodb://${PRIMARY_MONGO_USERNAME}:${PRIMARY_MONGO_PASSWORD}@primary-web-db:27017/B4E_Primary_Backend?authSource=admin&readPreference=primary&ssl=false
       - TOKEN_SECRET
