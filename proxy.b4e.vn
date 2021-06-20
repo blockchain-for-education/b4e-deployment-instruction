@@ -65,7 +65,7 @@ server {
     server_name explorer.b4e.vn www.explorer.b4e.vn;
 
     location / {
-      try_files $uri $uri/ index.html =404;
+      proxy_pass  https://localhost:3007;
     }
 
     ssl_certificate /etc/letsencrypt/live/explorer.b4e.vn/fullchain.pem; 
