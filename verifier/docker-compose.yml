@@ -4,7 +4,7 @@ services:
   # ============================= verifier-web-frontend =============================
   verifier-web-frontend:
     restart: unless-stopped
-    image: blockchain4education/verifier-web-frontend:${B4E_VERSION}
+    image: blockchain4education/verifier-web-frontend:${B4E_VERSION}-minor
     expose:
       # - 80
       - 443
@@ -24,7 +24,7 @@ services:
   # ============================= verifier-web-backend =============================
   verifier-web-backend:
     restart: unless-stopped
-    image: blockchain4education/verifier-web-backend:${B4E_VERSION}
+    image: blockchain4education/verifier-web-backend:${B4E_VERSION}-minor
     expose:
       - 8000
     ports:

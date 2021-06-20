@@ -4,7 +4,7 @@ services:
   # ============================= student-web-frontend =============================
   student-web-frontend:
     restart: unless-stopped
-    image: blockchain4education/student-web-frontend:${B4E_VERSION}
+    image: blockchain4education/student-web-frontend:${B4E_VERSION}-minor
     expose:
       # - 80
       - 443
@@ -24,7 +24,7 @@ services:
   # ============================= student-web-backend =============================
   student-web-backend:
     restart: unless-stopped
-    image: blockchain4education/student-web-backend:${B4E_VERSION}
+    image: blockchain4education/student-web-backend:${B4E_VERSION}-minor
     expose:
       - 8000
     ports:
