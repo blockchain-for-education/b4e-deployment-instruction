@@ -41,7 +41,7 @@ services:
         source: /etc/letsencrypt/
         target: /etc/letsencrypt/
     depends_on:
-      - company-web-db
+      - company_mongo-db
     command: ["run", "start-https"]
 
   # ============================= company-database =============================
