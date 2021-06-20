@@ -76,6 +76,51 @@ server {
 
 
 server {
+    listen 443; 
+    server_name company.b4e.vn www.company.b4e.vn;
+
+    location / {
+      try_files $uri $uri/ index.html =404;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/company.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/company.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+}
+
+
+server {
+    listen 443; 
+    server_name primary.b4e.vn www.primary.b4e.vn;
+
+    location / {
+      try_files $uri $uri/ index.html =404;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/primary.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/primary.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+}
+
+
+server {
+    listen 443; 
+    server_name secondary.b4e.vn www.secondary.b4e.vn;
+
+    location / {
+      try_files $uri $uri/ index.html =404;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/secondary.b4e.vn/fullchain.pem; 
+    ssl_certificate_key /etc/letsencrypt/live/secondary.b4e.vn/privkey.pem; 
+    include /etc/letsencrypt/options-ssl-nginx.conf; 
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; 
+}
+
+
+server {
   if ($host = www.ministry.b4e.vn) {
     return 301 https://$host$request_uri;
   } 
@@ -121,5 +166,41 @@ server {
   } 
   listen 80;
   server_name verifier.b4e.vn www.verifier.b4e.vn;
+    return 404; 
+}
+
+server {
+  if ($host = www.company.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  if ($host = company.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  listen 80;
+  server_name company.b4e.vn www.company.b4e.vn;
+    return 404; 
+}
+
+server {
+  if ($host = www.primary.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  if ($host = primary.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  listen 80;
+  server_name primary.b4e.vn www.primary.b4e.vn;
+    return 404; 
+}
+
+server {
+  if ($host = www.secondary.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  if ($host = secondary.b4e.vn) {
+    return 301 https://$host$request_uri;
+  } 
+  listen 80;
+  server_name secondary.b4e.vn www.secondary.b4e.vn;
     return 404; 
 }
