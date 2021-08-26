@@ -23,29 +23,35 @@
 #### 1.1 Requirement
   - SSL certificate for deployment domain 
 #### 1.2 Install
-#####1.2.1. Copy file private key and certificate for backend into
+##### 1.2.1. Copy file private key and certificate for backend into
+
     /etc/letsencrypt/archive/ministry-backend.b4e.vn/privkey.pem
-    /etc/letsencrypt/archive/ministry-backend.b4e.vn/fullchain.pem 
-#####1.2.2. Copy file private key and certificate for frontend into
+    /etc/letsencrypt/archive/ministry-backend.b4e.vn/fullchain.pem
+
+##### 1.2.2. Copy file private key and certificate for frontend into
+
     /etc/letsencrypt/archive/ministry.b4e.vn/privkey.pem
     /etc/letsencrypt/archive/ministry.b4e.vn/fullchain.pem
-#####1.2.3. Configure file .env
-######Environment variables:
+
+##### 1.2.3. Configure file .env
+###### Environment variables:
 
     B4E_VERSION=1.2.2
     MINISTRY_PEERS_IP=139.59.125.235
 
-###### setup mongo superadmin account
+###### Setup mongo superadmin account
     MINISTRY_MONGO_USERNAME=ministry
     MINISTRY_MONGO_PASSWORD=123456
 
 ###### web backend: jwt secret for authenticate user
+
     TOKEN_SECRET=QRA27XVAFD8A7FD6X
+
 ###### preset account for ministry
     MINISTRY_ACCOUNT_EMAIL=bgd@ministry.edu.vn
     MINISTRY_ACCOUNT_PASSWORD=12341234
 
-#####1.2.4 Run file docker compose
+##### 1.2.4 Run file docker compose
     user@host$ docker-compose up
 
 ### 2. Install docker-compose file for University
@@ -53,14 +59,18 @@
 #### 2.1 Requirement
   - SSL certificate for deployment domain 
 #### 2.2 Install
-#####2.2.1. Copy file private key and certificate for backend into
+##### 2.2.1. Copy file private key and certificate for backend into
+
     /etc/letsencrypt/archive/school-backend.b4e.vn/privkey.pem
     /etc/letsencrypt/archive/school-backend.b4e.vn/fullchain.pem 
-#####2.2.2. Copy file private key and certificate for frontend into
+
+##### 2.2.2. Copy file private key and certificate for frontend into
+
     /etc/letsencrypt/archive/school.b4e.vn/privkey.pem
     /etc/letsencrypt/archive/school.b4e.vn/fullchain.pem
-#####2.2.3. Configure file .env
-######Environment variables:
+
+##### 2.2.3. Configure file .env
+###### Environment variables:
 
     B4E_VERSION=1.2.2
     MINISTRY_PEERS_IP=139.59.125.235
@@ -76,7 +86,7 @@
     STAFF_ACCOUNT_EMAIL=bkhn@hust.edu.vn
     STAFF_ACCOUNT_PASSWORD=12341234
 
-#####2.2.4 Run file docker compose
+##### 2.2.4 Run file docker compose
     user@host$ docker-compose up
 
 ### 3. Install docker-compose file for Primary School
@@ -92,13 +102,18 @@
 #### 5.1 Requirement
   - SSL certificate for deployment domain 
 #### 5.2 Install
-#####5.2.1. Copy file private key and certificate for backend into
+##### 5.2.1. Copy file private key and certificate for backend into
+
     /etc/letsencrypt/archive/student-backend.b4e.vn/privkey.pem
     /etc/letsencrypt/archive/student-backend.b4e.vn/fullchain.pem 
-#####5.2.2. Copy file private key and certificate for frontend into
+
+##### 5.2.2. Copy file private key and certificate for frontend into
+
     /etc/letsencrypt/archive/student.b4e.vn/privkey.pem
     /etc/letsencrypt/archive/student.b4e.vn/fullchain.pem
-#####5.2.3. Configure file .env
+
+##### 5.2.3. Configure file .env
+
 ######Environment variables:
 
     B4E_VERSION=1.2.2
@@ -111,7 +126,7 @@
 ###### web backend: jwt secret for authenticate user
     TOKEN_SECRET=QRA27XVAFD8A7FD6X
 
-#####5.2.4 Run file docker compose
+##### 5.2.4 Run file docker compose
     user@host$ docker-compose up
 
 ### 6. Install docker-compose file for Verifier
