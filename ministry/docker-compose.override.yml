@@ -88,7 +88,7 @@ services:
         --db-user ${MINISTRY_MONGO_USERNAME} \
         --db-password ${MINISTRY_MONGO_PASSWORD} \
         --rest-api-default rest-api-0:8008  \
-        --subscriber-host-url https://ministry-backend.b4e.vn:8000 \
+        --subscriber-host-url {MINISTRY_PEERS_IP}:8000 \
         -C tcp://validator-0:4004 \
         -vv
       "
@@ -141,7 +141,7 @@ services:
       # - 80
       - 443
     ports:
-      # - "3000:80"
+      - "6000:80"
       - "3000:443"
     volumes:
       - type: bind

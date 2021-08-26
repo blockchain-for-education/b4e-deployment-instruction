@@ -9,8 +9,6 @@ services:
       - 3000
     ports:
       - "3005:443"
-    depends_on:
-      - primary-web-backend
     volumes:
       - type: bind
         source: ./nginx.conf
